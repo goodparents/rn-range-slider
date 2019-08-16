@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.math.MathUtils;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -71,6 +72,8 @@ public class RangeSlider extends View {
     private int activePointerId;
     private int activeThumb;
 
+    String sliderType="";
+
     public RangeSlider(Context context) {
         super(context);
         init();
@@ -89,7 +92,7 @@ public class RangeSlider extends View {
     private void init() {
 
         activePointerId = -1;
-        activeThumb = THUMB_NONE;
+        //activeThumb = THUMB_NONE;
 
         minValue = Integer.MIN_VALUE;
         maxValue = Integer.MAX_VALUE;
@@ -241,6 +244,11 @@ public class RangeSlider extends View {
         ViewCompat.postInvalidateOnAnimation(this);
     }
 
+    public void setSliderType(String type) {
+        this.sliderType = type;
+        ViewCompat.postInvalidateOnAnimation(this);
+    }
+
     public void setMinValue(int minValue) {
         if (minValue < maxValue) {
             this.minValue = minValue;
@@ -309,6 +317,7 @@ public class RangeSlider extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        Log.e("onTouchEvent","onTouchEvent");
         int actionIndex = event.getActionIndex();
 
         int oldLow = this.lowValue;
@@ -324,8 +333,8 @@ public class RangeSlider extends View {
                 handleTouchMove(pointerValue);
                 break;
             case MotionEvent.ACTION_UP:
-                activePointerId = -1;
-                activeThumb = THUMB_NONE;
+//                activePointerId = -1;
+//                activeThumb = THUMB_NONE;
                 break;
         }
         ViewCompat.postInvalidateOnAnimation(this);
@@ -348,9 +357,11 @@ public class RangeSlider extends View {
     private void handleTouchDown(int pointerValue) {
         if (!rangeEnabled || Math.abs(pointerValue - lowValue) < Math.abs(pointerValue - highValue)) {
             activeThumb = THUMB_LOW;
+            Log.e("handleTouchDown","activeThumb: THUMB_LOW");
             lowValue = pointerValue;
         } else {
             activeThumb = THUMB_HIGH;
+            Log.e("handleTouchDown","activeThumb: THUMB_HIGH");
             highValue = pointerValue;
         }
     }
@@ -359,8 +370,10 @@ public class RangeSlider extends View {
         if (!rangeEnabled) {
             lowValue = pointerValue;
         } else if (activeThumb == THUMB_LOW) {
+            Log.e("handleTouchMove","activeThumb: THUMB_LOW");
             lowValue = MathUtils.clamp(pointerValue, minValue, highValue - step);
         } else if (activeThumb == THUMB_HIGH) {
+            Log.e("handleTouchMove","activeThumb: THUMB_HIGH");
             highValue = MathUtils.clamp(pointerValue, lowValue + step, maxValue);
         }
     }
@@ -385,17 +398,24 @@ public class RangeSlider extends View {
         if (minValue == Integer.MIN_VALUE || maxValue == Integer.MAX_VALUE) { //Values are not set yet, don't draw anything
             return;
         }
+        Log.e("onDraw","minValue: "+minValue+" maxValue: "+maxValue);
         float labelTextHeight = getLabelTextHeight();
+        Log.e("onDraw","labelTextHeight: "+labelTextHeight);
         float labelHeight = labelStyle == LabelStyle.NONE ? 0 : 2 * labelBorderWidth + labelTailHeight + labelTextHeight + 2 * labelPadding;
+        Log.e("onDraw","labelHeight: "+labelHeight);
         float labelAndGapHeight = labelStyle == LabelStyle.NONE ? 0 : labelHeight + labelGapHeight;
+        Log.e("onDraw","labelAndGapHeight: "+labelAndGapHeight);
 
         float drawingHeight = labelAndGapHeight + 2 * thumbRadius;
+        Log.e("onDraw","drawingHeight: "+drawingHeight);
         float height = getHeight();
         if (height > drawingHeight) {
             if (gravity == Gravity.BOTTOM) {
                 canvas.translate(0, height - drawingHeight);
+                Log.e("onDraw","Gravity.BOTTOM: "+(height - drawingHeight));
             } else if (gravity == Gravity.CENTER) {
                 canvas.translate(0, (height - drawingHeight) / 2);
+                Log.e("onDraw","Gravity.CENTER: "+((height - drawingHeight) / 2));
             }
         }
 
@@ -512,7 +532,17 @@ public class RangeSlider extends View {
      * @return formatted text
      */
     private String formatLabelText(int value) {
-        return String.format(textFormat, value);
+        if(sliderType.equals("radius")){
+            if(value==0)
+                return "  Near  ";
+            else if(value==100)
+                return "  Far  ";
+            else
+                return "";
+        }else{
+            return String.format(textFormat, value);
+        }
+
     }
 
     public interface OnValueChangeListener {

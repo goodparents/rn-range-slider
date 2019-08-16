@@ -157,6 +157,11 @@ public class RangeSliderViewManager extends SimpleViewManager<RangeSlider> {
         view.setLabelBorderColor(hexColor);
     }
 
+    @ReactProp(name = "sliderType")
+    public void setSliderType(RangeSlider view, String type) {
+        view.setSliderType(type);
+    }
+
     @Override
     protected RangeSlider createViewInstance(final ThemedReactContext reactContext) {
         final RangeSlider slider = new RangeSlider(reactContext);
